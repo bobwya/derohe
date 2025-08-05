@@ -20,7 +20,7 @@ import "fmt"
 import "context"
 import "encoding/hex"
 import "runtime/debug"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 
 func SubmitBlock(ctx context.Context, p rpc.SubmitBlock_Params) (result rpc.SubmitBlock_Result, err error) {
 

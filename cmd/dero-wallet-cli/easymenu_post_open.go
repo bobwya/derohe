@@ -30,7 +30,7 @@ import (
 	"github.com/chzyer/readline"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/globals"
-	"github.com/deroproject/derohe/rpc"
+	"github.com/bobwya/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
 )
 
@@ -41,33 +41,33 @@ func display_easymenu_post_open_command(l *readline.Instance) {
 	w := l.Stderr()
 	io.WriteString(w, "Menu:\n")
 
-	io.WriteString(w, "\t\033[1m1\033[0m\tDisplay account Address \n")
-	io.WriteString(w, "\t\033[1m2\033[0m\tDisplay Seed "+color_red+"(Please save seed in safe location)\n\033[0m")
+	io.WriteString(w, "\t"+bold_color_code+"1"+regular_color_code+"\tDisplay account Address \n")
+	io.WriteString(w, "\t"+bold_color_code+"2"+regular_color_code+"\tDisplay Seed "+color_red+"(Please save seed in safe location)\n"+regular_color_code+"")
 
-	io.WriteString(w, "\t\033[1m3\033[0m\tDisplay Keys (hex)\n")
+	io.WriteString(w, "\t"+bold_color_code+"3"+regular_color_code+"\tDisplay Keys (hex)\n")
 
 	if !wallet.IsRegistered() {
-		io.WriteString(w, "\t\033[1m4\033[0m\tAccount registration to blockchain (registration has no fee requirement and is precondition to use the account)\n")
+		io.WriteString(w, "\t"+bold_color_code+"4"+regular_color_code+"\tAccount registration to blockchain (registration has no fee requirement and is precondition to use the account)\n")
 		io.WriteString(w, "\n")
 		io.WriteString(w, "\n")
 	} else { // hide some commands, if view only wallet
-		io.WriteString(w, "\t\033[1m4\033[0m\tDisplay wallet pool\n")
-		io.WriteString(w, "\t\033[1m5\033[0m\tTransfer (send  DERO) to Another Wallet\n")
-		io.WriteString(w, "\t\033[1m6\033[0m\tToken transfer to another wallet\n")
+		io.WriteString(w, "\t"+bold_color_code+"4"+regular_color_code+"\tDisplay wallet pool\n")
+		io.WriteString(w, "\t"+bold_color_code+"5"+regular_color_code+"\tTransfer (send  DERO) to Another Wallet\n")
+		io.WriteString(w, "\t"+bold_color_code+"6"+regular_color_code+"\tToken transfer to another wallet\n")
 		io.WriteString(w, "\n")
 	}
 
-	io.WriteString(w, "\t\033[1m7\033[0m\tChange wallet password\n")
-	io.WriteString(w, "\t\033[1m8\033[0m\tClose Wallet\n")
+	io.WriteString(w, "\t"+bold_color_code+"7"+regular_color_code+"\tChange wallet password\n")
+	io.WriteString(w, "\t"+bold_color_code+"8"+regular_color_code+"\tClose Wallet\n")
 	if wallet.IsRegistered() {
-		io.WriteString(w, "\t\033[1m12\033[0m\tTransfer all balance (send  DERO) To Another Wallet\n")
-		io.WriteString(w, "\t\033[1m13\033[0m\tShow transaction history\n")
-		io.WriteString(w, "\t\033[1m14\033[0m\tRescan transaction history\n")
-		io.WriteString(w, "\t\033[1m15\033[0m\tExport all transaction history in json format\n")
+		io.WriteString(w, "\t"+bold_color_code+"12"+regular_color_code+"\tTransfer all balance (send  DERO) To Another Wallet\n")
+		io.WriteString(w, "\t"+bold_color_code+"13"+regular_color_code+"\tShow transaction history\n")
+		io.WriteString(w, "\t"+bold_color_code+"14"+regular_color_code+"\tRescan transaction history\n")
+		io.WriteString(w, "\t"+bold_color_code+"15"+regular_color_code+"\tExport all transaction history in json format\n")
 	}
 
-	io.WriteString(w, "\n\t\033[1m9\033[0m\tExit menu and start prompt\n")
-	io.WriteString(w, "\t\033[1m0\033[0m\tExit Wallet\n")
+	io.WriteString(w, "\n\t"+bold_color_code+"9"+regular_color_code+"\tExit menu and start prompt\n")
+	io.WriteString(w, "\t"+bold_color_code+"0"+regular_color_code+"\tExit Wallet\n")
 
 }
 

@@ -20,7 +20,7 @@ import "fmt"
 import "context"
 import "runtime/debug"
 import "github.com/deroproject/derohe/cryptography/crypto"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 
 func GetBlockHeaderByHash(ctx context.Context, p rpc.GetBlockHeaderByHash_Params) (result rpc.GetBlockHeaderByHash_Result, err error) {
 	defer func() { // safety so if anything wrong happens, we return error

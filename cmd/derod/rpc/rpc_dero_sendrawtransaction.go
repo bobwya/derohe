@@ -20,7 +20,7 @@ import "fmt"
 import "context"
 import "encoding/hex"
 import "runtime/debug"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/p2p"
 import "github.com/deroproject/derohe/transaction"
 

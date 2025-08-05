@@ -46,7 +46,7 @@ import "github.com/deroproject/derohe/p2p"
 import "github.com/deroproject/derohe/globals"
 
 import "github.com/deroproject/derohe/config"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/blockchain"
 
 //import "github.com/deroproject/derohe/transaction"
@@ -62,6 +62,30 @@ import "github.com/deroproject/derohe/cryptography/crypto"
 import "github.com/deroproject/derohe/walletapi"
 
 import "github.com/deroproject/derohe/cmd/explorer/explorerlib"
+
+// Color codes for TTY usage
+const (
+        regular_color_code = "\033[0m"
+        bold_color_code = "\033[1m"
+
+        black_color_code = "\033[30m"
+        red_color_code = "\033[31m"
+        green_color_code = "\033[32m"
+        yellow_color_code = "\033[33m"
+        blue_color_code = "\033[34m"
+        magenta_color_code = "\033[35m"
+        cyan_color_code = "\033[36m"
+        white_color_code = "\033[37m"
+
+        bright_black_color_code = "\033[90m"
+        bright_red_color_code = "\033[91m"
+        bright_green_color_code = "\033[92m"
+        bright_yellow_color_code = "\033[93m"
+        bright_blue_color_code = "\033[94m"
+        bright_magenta_color_code = "\033[95m"
+        bright_cyan_color_code = "\033[96m"
+        bright_white_color_code = "\033[97m"
+)
 
 var command_line string = `simulator 
 DERO : A secure, private blockchain with smart-contracts
@@ -141,8 +165,8 @@ func main() {
 	// We need to initialize readline first, so it changes stderr to ansi processor on windows
 
 	l, err := readline.NewEx(&readline.Config{
-		//Prompt:          "\033[92mDERO:\033[32m»\033[0m",
-		Prompt:          "\033[92mDEROSIM:\033[32m>>>\033[0m ",
+		//Prompt:          ""+bright_green_color_code+"DERO:"+green_color_code+"»"+regular_color_code+"",
+		Prompt:          ""+bright_green_color_code+"DEROSIM:"+green_color_code+">>>"+regular_color_code+" ",
 		HistoryFile:     filepath.Join(os.TempDir(), "derosim_readline.tmp"),
 		AutoComplete:    completer,
 		InterruptPrompt: "^C",
@@ -242,18 +266,18 @@ func main() {
 			// only update prompt if needed
 			if last_our_height != our_height || last_best_height != best_height || last_peer_count != peer_count || last_topo_height != topo_height || last_mempool_tx_count != mempool_tx_count || last_regpool_tx_count != regpool_tx_count {
 				// choose color based on urgency
-				color := "\033[32m" // default is green color
+				color := ""+green_color_code+"" // default is green color
 				if our_height < best_height {
-					color = "\033[33m" // make prompt yellow
+					color = ""+yellow_color_code+"" // make prompt yellow
 				} else if our_height > best_height {
-					color = "\033[31m" // make prompt red
+					color = ""+red_color_code+"" // make prompt red
 				}
 
-				pcolor := "\033[32m" // default is green color
+				pcolor := ""+green_color_code+"" // default is green color
 				if peer_count < 1 {
-					pcolor = "\033[31m" // make prompt red
+					pcolor = ""+red_color_code+"" // make prompt red
 				} else if peer_count <= 8 {
-					pcolor = "\033[33m" // make prompt yellow
+					pcolor = ""+yellow_color_code+"" // make prompt yellow
 				}
 
 				hash_rate_string := ""
@@ -273,10 +297,10 @@ func main() {
 
 				testnet_string := ""
 				if !globals.IsMainnet() {
-					testnet_string = "\033[31m TESTNET"
+					testnet_string = ""+red_color_code+" TESTNET"
 				}
 
-				l.SetPrompt(fmt.Sprintf("\033[1m\033[32mDEROSIM HE: \033[0m"+color+"%d/%d [%d/%d] "+pcolor+"P %d TXp %d:%d \033[32mNW %s %s> >>\033[0m ", our_height, topo_height, best_height, best_topo_height, peer_count, mempool_tx_count, regpool_tx_count, hash_rate_string, testnet_string))
+				l.SetPrompt(fmt.Sprintf(""+bold_color_code+""+green_color_code+"DEROSIM HE: "+regular_color_code+""+color+"%d/%d [%d/%d] "+pcolor+"P %d TXp %d:%d "+green_color_code+"NW %s %s> >>"+regular_color_code+" ", our_height, topo_height, best_height, best_topo_height, peer_count, mempool_tx_count, regpool_tx_count, hash_rate_string, testnet_string))
 				l.Refresh()
 				last_our_height = our_height
 				last_best_height = best_height
@@ -606,30 +630,30 @@ func prettyprint_json(b []byte) []byte {
 func usage(w io.Writer) {
 	io.WriteString(w, "commands:\n")
 	//io.WriteString(w, completer.Tree("    "))
-	io.WriteString(w, "\t\033[1mhelp\033[0m\t\tthis help\n")
-	io.WriteString(w, "\t\033[1mdiff\033[0m\t\tShow difficulty\n")
-	io.WriteString(w, "\t\033[1mprint_bc\033[0m\tPrint blockchain info in a given blocks range, print_bc <begin_height> <end_height>\n")
-	io.WriteString(w, "\t\033[1mprint_block\033[0m\tPrint block, print_block <block_hash> or <block_height>\n")
-	io.WriteString(w, "\t\033[1mprint_height\033[0m\tPrint local blockchain height\n")
-	io.WriteString(w, "\t\033[1mprint_tx\033[0m\tPrint transaction, print_tx <transaction_hash>\n")
-	io.WriteString(w, "\t\033[1mstatus\033[0m\t\tShow general information\n")
-	io.WriteString(w, "\t\033[1mstart_mining\033[0m\tStart mining <dero address> <number of threads>\n")
-	io.WriteString(w, "\t\033[1mstop_mining\033[0m\tStop daemon mining\n")
-	io.WriteString(w, "\t\033[1mpeer_list\033[0m\tPrint peer list\n")
-	io.WriteString(w, "\t\033[1msync_info\033[0m\tPrint information about connected peers and their state\n")
-	io.WriteString(w, "\t\033[1mbye\033[0m\t\tQuit the daemon\n")
-	io.WriteString(w, "\t\033[1mban\033[0m\t\tBan specific ip from making any connections\n")
-	io.WriteString(w, "\t\033[1munban\033[0m\t\tRevoke restrictions on previously banned ips\n")
-	io.WriteString(w, "\t\033[1mbans\033[0m\t\tPrint current ban list\n")
-	io.WriteString(w, "\t\033[1mmempool_print\033[0m\t\tprint mempool contents\n")
-	io.WriteString(w, "\t\033[1mmempool_delete_tx\033[0m\t\tDelete specific tx from mempool\n")
-	io.WriteString(w, "\t\033[1mmempool_flush\033[0m\t\tFlush regpool\n")
-	io.WriteString(w, "\t\033[1mregpool_print\033[0m\t\tprint regpool contents\n")
-	io.WriteString(w, "\t\033[1mregpool_delete_tx\033[0m\t\tDelete specific tx from regpool\n")
-	io.WriteString(w, "\t\033[1mregpool_flush\033[0m\t\tFlush mempool\n")
-	io.WriteString(w, "\t\033[1mversion\033[0m\t\tShow version\n")
-	io.WriteString(w, "\t\033[1mexit\033[0m\t\tQuit the daemon\n")
-	io.WriteString(w, "\t\033[1mquit\033[0m\t\tQuit the daemon\n")
+	io.WriteString(w, "\t"+bold_color_code+"help"+regular_color_code+"\t\tthis help\n")
+	io.WriteString(w, "\t"+bold_color_code+"diff"+regular_color_code+"\t\tShow difficulty\n")
+	io.WriteString(w, "\t"+bold_color_code+"print_bc"+regular_color_code+"\tPrint blockchain info in a given blocks range, print_bc <begin_height> <end_height>\n")
+	io.WriteString(w, "\t"+bold_color_code+"print_block"+regular_color_code+"\tPrint block, print_block <block_hash> or <block_height>\n")
+	io.WriteString(w, "\t"+bold_color_code+"print_height"+regular_color_code+"\tPrint local blockchain height\n")
+	io.WriteString(w, "\t"+bold_color_code+"print_tx"+regular_color_code+"\tPrint transaction, print_tx <transaction_hash>\n")
+	io.WriteString(w, "\t"+bold_color_code+"status"+regular_color_code+"\t\tShow general information\n")
+	io.WriteString(w, "\t"+bold_color_code+"start_mining"+regular_color_code+"\tStart mining <dero address> <number of threads>\n")
+	io.WriteString(w, "\t"+bold_color_code+"stop_mining"+regular_color_code+"\tStop daemon mining\n")
+	io.WriteString(w, "\t"+bold_color_code+"peer_list"+regular_color_code+"\tPrint peer list\n")
+	io.WriteString(w, "\t"+bold_color_code+"sync_info"+regular_color_code+"\tPrint information about connected peers and their state\n")
+	io.WriteString(w, "\t"+bold_color_code+"bye"+regular_color_code+"\t\tQuit the daemon\n")
+	io.WriteString(w, "\t"+bold_color_code+"ban"+regular_color_code+"\t\tBan specific ip from making any connections\n")
+	io.WriteString(w, "\t"+bold_color_code+"unban"+regular_color_code+"\t\tRevoke restrictions on previously banned ips\n")
+	io.WriteString(w, "\t"+bold_color_code+"bans"+regular_color_code+"\t\tPrint current ban list\n")
+	io.WriteString(w, "\t"+bold_color_code+"mempool_print"+regular_color_code+"\t\tprint mempool contents\n")
+	io.WriteString(w, "\t"+bold_color_code+"mempool_delete_tx"+regular_color_code+"\t\tDelete specific tx from mempool\n")
+	io.WriteString(w, "\t"+bold_color_code+"mempool_flush"+regular_color_code+"\t\tFlush regpool\n")
+	io.WriteString(w, "\t"+bold_color_code+"regpool_print"+regular_color_code+"\t\tprint regpool contents\n")
+	io.WriteString(w, "\t"+bold_color_code+"regpool_delete_tx"+regular_color_code+"\t\tDelete specific tx from regpool\n")
+	io.WriteString(w, "\t"+bold_color_code+"regpool_flush"+regular_color_code+"\t\tFlush mempool\n")
+	io.WriteString(w, "\t"+bold_color_code+"version"+regular_color_code+"\t\tShow version\n")
+	io.WriteString(w, "\t"+bold_color_code+"exit"+regular_color_code+"\t\tQuit the daemon\n")
+	io.WriteString(w, "\t"+bold_color_code+"quit"+regular_color_code+"\t\tQuit the daemon\n")
 
 }
 

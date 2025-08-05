@@ -17,7 +17,7 @@
 package rpc
 
 import "context"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 
 func GetBlockCount(ctx context.Context) rpc.GetBlockCount_Result {
 	return rpc.GetBlockCount_Result{

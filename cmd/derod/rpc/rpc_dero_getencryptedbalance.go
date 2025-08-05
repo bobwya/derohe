@@ -26,7 +26,7 @@ import "github.com/deroproject/graviton"
 import "github.com/deroproject/derohe/globals"
 import "github.com/deroproject/derohe/config"
 import "github.com/deroproject/derohe/errormsg"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 
 //import "github.com/deroproject/derohe/dvm"
 //import "github.com/deroproject/derohe/cryptography/crypto"

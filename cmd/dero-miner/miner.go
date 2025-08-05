@@ -41,7 +41,7 @@ import "github.com/deroproject/derohe/globals"
 
 //import "github.com/deroproject/derohe/cryptography/crypto"
 import "github.com/deroproject/derohe/block"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 
 import "github.com/chzyer/readline"
 import "github.com/docopt/docopt-go"
@@ -50,6 +50,30 @@ import "github.com/deroproject/derohe/astrobwt/astrobwt_fast"
 import "github.com/deroproject/derohe/astrobwt/astrobwtv3"
 
 import "github.com/gorilla/websocket"
+
+// Color codes for TTY usage
+const (
+        regular_color_code = "\033[0m"
+        bold_color_code = "\033[1m"
+
+        black_color_code = "\033[30m"
+        red_color_code = "\033[31m"
+        green_color_code = "\033[32m"
+        yellow_color_code = "\033[33m"
+        blue_color_code = "\033[34m"
+        magenta_color_code = "\033[35m"
+        cyan_color_code = "\033[36m"
+        white_color_code = "\033[37m"
+
+        bright_black_color_code = "\033[90m"
+        bright_red_color_code = "\033[91m"
+        bright_green_color_code = "\033[92m"
+        bright_yellow_color_code = "\033[93m"
+        bright_blue_color_code = "\033[94m"
+        bright_magenta_color_code = "\033[95m"
+        bright_cyan_color_code = "\033[96m"
+        bright_white_color_code = "\033[97m"
+)
 
 var mutex sync.RWMutex
 var job rpc.GetBlockTemplate_Result
@@ -71,24 +95,32 @@ var mini_block_counter uint64
 var rejected uint64
 var logger logr.Logger
 
+var background_mode bool
+var time_change bool
+var status_interval uint64
+var prompt_string string
+
 var command_line string = `dero-miner
 DERO CPU Miner for AstroBWT.
 ONE CPU, ONE VOTE.
 http://wiki.dero.io
 
 Usage:
-  dero-miner  --wallet-address=<wallet_address> [--daemon-rpc-address=<minernode1.dero.live:10100>] [--mining-threads=<threads>] [--testnet] [--debug]
+  dero-miner  --wallet-address=<wallet_address> [--background] [--daemon-rpc-address=<minernode1.dero.live:10100>] [--mining-threads=<threads>] [--testnet] [--debug] [--log-dir=<dir>] [--logging]
   dero-miner --bench 
   dero-miner -h | --help
   dero-miner --version
 
 Options:
-  -h --help     Show this screen.
-  --version     Show version.
-  --bench  	    Run benchmark mode.
-  --daemon-rpc-address=<127.0.0.1:10102>    Miner will connect to daemon RPC on this port (default minernode1.dero.live:10100).
-  --wallet-address=<wallet_address>    This address is rewarded when a block is mined sucessfully.
-  --mining-threads=<threads>         Number of CPU threads for mining [default: ` + fmt.Sprintf("%d", runtime.GOMAXPROCS(0)) + `]
+  -h --help  Show this screen.
+  --version  Show version.
+  --bench  Run benchmark mode.
+  --background  Run as a background service
+  --daemon-rpc-address=<127.0.0.1:10102>  Miner will connect to daemon RPC on this port (default minernode1.dero.live:10100).
+  --wallet-address=<wallet_address>  This address is rewarded when a block is mined sucessfully.
+  --mining-threads=<threads>  Number of CPU threads for mining [default: ` + fmt.Sprintf("%d", runtime.GOMAXPROCS(0)) + `]
+  --logging  Enable file logging
+  --log-dir=<directory>  Logs will be placed in this directory
 
 Example Mainnet: ./dero-miner-linux-amd64 --wallet-address dero1qy0ehnqjpr0wxqnknyc66du2fsxyktppkr8m8e6jvplp954klfjz2qqhmy4zf --daemon-rpc-address=minernode1.dero.live:10100
 Example Testnet: ./dero-miner-linux-amd64 --wallet-address deto1qy0ehnqjpr0wxqnknyc66du2fsxyktppkr8m8e6jvplp954klfjz2qqdzcd8p --daemon-rpc-address=127.0.0.1:40402 
@@ -109,9 +141,19 @@ func main() {
 
 	// We need to initialize readline first, so it changes stderr to ansi processor on windows
 
+
+	if globals.Arguments["--background"].(bool) {
+		background_mode = true
+		prompt_string = ""
+		status_interval = 60
+	} else {
+		background_mode = false
+		prompt_string = bright_green_color_code+"DERO Miner:"+green_color_code+">>> "+regular_color_code
+		status_interval = 1
+	}
+
 	l, err := readline.NewEx(&readline.Config{
-		//Prompt:          "\033[92mDERO:\033[32m»\033[0m",
-		Prompt:          "\033[92mDERO Miner:\033[32m>>>\033[0m ",
+		Prompt:          prompt_string,
 		HistoryFile:     filepath.Join(os.TempDir(), "dero_miner_readline.tmp"),
 		AutoComplete:    completer,
 		InterruptPrompt: "^C",
@@ -126,13 +168,33 @@ func main() {
 	defer l.Close()
 
 	// parse arguments and setup logging , print basic information
-	exename, _ := os.Executable()
-	f, err := os.Create(exename + ".log")
-	if err != nil {
-		fmt.Printf("Error while opening log file err: %s filename %s\n", err, exename+".log")
-		return
+	if globals.Arguments["--logging"] != nil && globals.Arguments["--logging"].(bool) == true {
+		globals.Logging = true
+	} else {
+		globals.Logging = false
 	}
-	globals.InitializeLog(l.Stdout(), f)
+	exename, _ := os.Executable()
+	logdir := ""
+	filename := exename + ".log"
+	if _, ok := globals.Arguments["--log-dir"]; ok && globals.Arguments["--log-dir"] != nil {
+		if !globals.Logging {
+			logger.Error(fmt.Errorf("logging must be enabled when --log-dir is specified"), "invalid argument")
+			return
+		}
+		logdir = globals.Arguments["--log-dir"].(string)
+		filename = filepath.Base(exename) + ".log"
+		filename = filepath.Join(logdir,filename)
+	}
+	if globals.Logging {
+		f, err := os.Create(exename + ".log")
+		if err != nil {
+			fmt.Printf("Error while opening log file err: %s filename %s\n", err, exename+".log")
+			return
+		}
+		globals.InitializeLog(l.Stdout(), f)
+	} else {
+		globals.InitializeLog(l.Stdout(), nil)
+	}
 	logger = globals.Logger.WithName("miner")
 
 	logger.Info("DERO Stargate HE AstroBWT miner : It is an alpha version, use it for testing/evaluations purpose only.")
@@ -233,6 +295,9 @@ func main() {
 		_ = last_mining_state
 
 		mining := true
+
+		base_string := bold_color_code+green_color_code+"DERO Miner  "+regular_color_code+blue_color_code+"Height: "+yellow_color_code+"%010d"+regular_color_code+blue_color_code+"  Blocks: "+green_color_code+"+%04d.%04d"+red_color_code+"-%04d"+regular_color_code+blue_color_code+"  Network"+black_color_code+"("+blue_color_code+"hashrate"+black_color_code+")"+blue_color_code+": "+yellow_color_code+"%s"+blue_color_code+"  Mining"+black_color_code+"("+blue_color_code+"hashrate"+black_color_code+")"+blue_color_code+": "+yellow_color_code+"%s"
+
 		for {
 			select {
 			case <-Exit_In_Progress:
@@ -243,11 +308,8 @@ func main() {
 			best_height := int64(0)
 			// only update prompt if needed
 			if last_our_height != our_height || last_best_height != best_height || last_counter != counter {
-				// choose color based on urgency
-				color := "\033[33m"  // default is green color
-				pcolor := "\033[32m" // default is green color
 
-				mining_string := ""
+				mining_string := red_color_code+"   inactive  "
 
 				if mining {
 					mining_speed := float64(counter-last_counter) / (float64(uint64(time.Since(last_counter_time))) / 1000000000.0)
@@ -255,41 +317,47 @@ func main() {
 					last_counter_time = time.Now()
 					switch {
 					case mining_speed > 1000000:
-						mining_string = fmt.Sprintf("MINING @ %.3f MH/s", float32(mining_speed)/1000000.0)
+						mining_string = fmt.Sprintf("%8.3f "+black_color_code+"MH/s", float32(mining_speed)/1000000.0)
 					case mining_speed > 1000:
-						mining_string = fmt.Sprintf("MINING @ %.3f KH/s", float32(mining_speed)/1000.0)
+						mining_string = fmt.Sprintf("%8.3f "+black_color_code+"KH/s", float32(mining_speed)/1000.0)
 					case mining_speed > 0:
-						mining_string = fmt.Sprintf("MINING @ %.0f H/s", mining_speed)
+						mining_string = fmt.Sprintf("%4.0f "+black_color_code+"H/s", mining_speed)
 					}
 				}
 				last_mining_state = mining
 
 				hash_rate_string := ""
 
+				hash_rate /= status_interval
 				switch {
 				case hash_rate > 1000000000000:
-					hash_rate_string = fmt.Sprintf("%.3f TH/s", float64(hash_rate)/1000000000000.0)
+					hash_rate_string = fmt.Sprintf("%8.3f "+black_color_code+"TH/s", float64(hash_rate)/1000000000000.0)
 				case hash_rate > 1000000000:
-					hash_rate_string = fmt.Sprintf("%.3f GH/s", float64(hash_rate)/1000000000.0)
+					hash_rate_string = fmt.Sprintf("%8.3f "+black_color_code+"GH/s", float64(hash_rate)/1000000000.0)
 				case hash_rate > 1000000:
-					hash_rate_string = fmt.Sprintf("%.3f MH/s", float64(hash_rate)/1000000.0)
+					hash_rate_string = fmt.Sprintf("%8.3f "+black_color_code+"MH/s", float64(hash_rate)/1000000.0)
 				case hash_rate > 1000:
-					hash_rate_string = fmt.Sprintf("%.3f KH/s", float64(hash_rate)/1000.0)
+					hash_rate_string = fmt.Sprintf("%8.3f "+black_color_code+"KH/s", float64(hash_rate)/1000.0)
 				case hash_rate > 0:
-					hash_rate_string = fmt.Sprintf("%d H/s", hash_rate)
+					hash_rate_string = fmt.Sprintf("%4d "+black_color_code+"H/s", hash_rate)
 				}
 
 				testnet_string := ""
 				if !globals.IsMainnet() {
-					testnet_string = "\033[31m TESTNET"
+					testnet_string = red_color_code+" TESTNET"
 				}
 
-				l.SetPrompt(fmt.Sprintf("\033[1m\033[32mDERO Miner: \033[0m"+color+"Height %d "+pcolor+" BLOCKS %d MiniBlocks %d Rejected %d \033[32mNW %s %s>%s>>\033[0m ", our_height, block_counter, mini_block_counter, rejected, hash_rate_string, mining_string, testnet_string))
-				l.Refresh()
+				format_string := base_string+"%s"+black_color_code+regular_color_code
+				logger.Info(fmt.Sprintf(format_string, our_height, block_counter, mini_block_counter, rejected, hash_rate_string, mining_string, testnet_string))
+				if !background_mode {
+					format_string := base_string+" >%s>> "+black_color_code+regular_color_code
+					l.SetPrompt(fmt.Sprintf(format_string, our_height, block_counter, mini_block_counter, rejected, hash_rate_string, mining_string, testnet_string))
+					l.Refresh()
+				}
 				last_our_height = our_height
 				last_best_height = best_height
 			}
-			time.Sleep(1 * time.Second)
+			time.Sleep(time.Duration(status_interval) * time.Second)
 		}
 	}()
 
@@ -542,12 +610,12 @@ func mineblock(tid int) {
 
 func usage(w io.Writer) {
 	io.WriteString(w, "commands:\n")
-	io.WriteString(w, "\t\033[1mhelp\033[0m\t\tthis help\n")
-	io.WriteString(w, "\t\033[1mstatus\033[0m\t\tShow general information\n")
-	io.WriteString(w, "\t\033[1mbye\033[0m\t\tQuit the miner\n")
-	io.WriteString(w, "\t\033[1mversion\033[0m\t\tShow version\n")
-	io.WriteString(w, "\t\033[1mexit\033[0m\t\tQuit the miner\n")
-	io.WriteString(w, "\t\033[1mquit\033[0m\t\tQuit the miner\n")
+	io.WriteString(w, "\t"+bold_color_code+"help"+regular_color_code+"\t\tthis help\n")
+	io.WriteString(w, "\t"+bold_color_code+"status"+regular_color_code+"\t\tShow general information\n")
+	io.WriteString(w, "\t"+bold_color_code+"bye"+regular_color_code+"\t\tQuit the miner\n")
+	io.WriteString(w, "\t"+bold_color_code+"version"+regular_color_code+"\t\tShow version\n")
+	io.WriteString(w, "\t"+bold_color_code+"exit"+regular_color_code+"\t\tQuit the miner\n")
+	io.WriteString(w, "\t"+bold_color_code+"quit"+regular_color_code+"\t\tQuit the miner\n")
 
 }
 

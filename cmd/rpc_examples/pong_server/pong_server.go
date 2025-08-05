@@ -21,7 +21,7 @@ import "github.com/go-logr/logr"
 import "gopkg.in/natefinch/lumberjack.v2"
 import "github.com/deroproject/derohe/globals" // needed for logs
 
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/walletapi"
 import "github.com/ybbus/jsonrpc"
 

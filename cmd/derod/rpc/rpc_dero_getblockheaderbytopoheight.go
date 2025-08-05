@@ -19,7 +19,7 @@ package rpc
 import "fmt"
 import "context"
 import "runtime/debug"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 
 func GetBlockHeaderByTopoHeight(ctx context.Context, p rpc.GetBlockHeaderByTopoHeight_Params) (result rpc.GetBlockHeaderByHeight_Result, err error) {
 

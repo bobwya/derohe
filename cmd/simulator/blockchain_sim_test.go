@@ -34,7 +34,7 @@ import "github.com/docopt/docopt-go"
 
 import "github.com/deroproject/derohe/globals"
 import "github.com/deroproject/derohe/config"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/transaction"
 import "github.com/deroproject/derohe/walletapi"
 import "github.com/deroproject/derohe/blockchain"

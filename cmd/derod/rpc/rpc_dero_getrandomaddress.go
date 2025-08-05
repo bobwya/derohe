@@ -23,7 +23,7 @@ import "runtime/debug"
 import "github.com/deroproject/derohe/config"
 import "github.com/deroproject/derohe/globals"
 import "github.com/deroproject/derohe/cryptography/crypto"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 
 //import "github.com/deroproject/derohe/blockchain"
 
