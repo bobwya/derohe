@@ -23,9 +23,9 @@ import "runtime/debug"
 //import	"log"
 //import 	"net/http"
 
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 
-//import "github.com/deroproject/derohe/rpc"
+//import "github.com/bobwya/derohe/rpc"
 
 func SplitIntegratedAddress(ctx context.Context, p rpc.Split_Integrated_Address_Params) (result rpc.Split_Integrated_Address_Result, err error) {
 	defer func() { // safety so if anything wrong happens, we return error

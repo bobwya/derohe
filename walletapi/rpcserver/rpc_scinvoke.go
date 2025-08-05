@@ -20,7 +20,7 @@ import "fmt"
 
 import "context"
 import "runtime/debug"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/cryptography/crypto"
 
 func ScInvoke(ctx context.Context, p rpc.SC_Invoke_Params) (result rpc.Transfer_Result, err error) {

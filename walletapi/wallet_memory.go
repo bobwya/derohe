@@ -31,7 +31,7 @@ import "encoding/json"
 import "github.com/blang/semver/v4"
 import "golang.org/x/crypto/pbkdf2" // // used to encrypt master password ( so user can change his password anytime)
 
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/config"
 import "github.com/deroproject/derohe/globals"
 import "github.com/deroproject/derohe/cryptography/crypto"

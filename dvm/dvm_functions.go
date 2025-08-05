@@ -25,7 +25,7 @@ import "encoding/hex"
 import "golang.org/x/crypto/sha3"
 import "github.com/blang/semver/v4"
 
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/cryptography/crypto"
 
 // this files defines  external functions which can be called in DVM

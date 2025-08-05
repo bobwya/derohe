@@ -52,6 +52,30 @@ import "github.com/deroproject/derohe/walletapi/mnemonics"
 
 //import "encoding/json"
 
+// Color codes for TTY usage
+const (
+        regular_color_code = "\033[0m"
+        bold_color_code = "\033[1m"
+
+        black_color_code = "\033[30m"
+        red_color_code = "\033[31m"
+        green_color_code = "\033[32m"
+        yellow_color_code = "\033[33m"
+        blue_color_code = "\033[34m"
+        magenta_color_code = "\033[35m"
+        cyan_color_code = "\033[36m"
+        white_color_code = "\033[37m"
+
+        bright_black_color_code = "\033[90m"
+        bright_red_color_code = "\033[91m"
+        bright_green_color_code = "\033[92m"
+        bright_yellow_color_code = "\033[93m"
+        bright_blue_color_code = "\033[94m"
+        bright_magenta_color_code = "\033[95m"
+        bright_cyan_color_code = "\033[96m"
+        bright_white_color_code = "\033[97m"
+)
+
 var command_line string = `dero-wallet-cli 
 DERO : A secure, private blockchain with smart-contracts
 
@@ -96,19 +120,19 @@ var default_offline_datafile string = "getoutputs.bin"
 
 var logger logr.Logger = logr.Discard() // default discard all logs
 
-var color_black = "\033[30m"
-var color_red = "\033[31m"
-var color_green = "\033[32m"
-var color_yellow = "\033[33m"
-var color_blue = "\033[34m"
-var color_magenta = "\033[35m"
-var color_cyan = "\033[36m"
-var color_white = "\033[37m"
-var color_extra_white = "\033[1m"
-var color_normal = "\033[0m"
+var color_black = ""+black_color_code+""
+var color_red = ""+red_color_code+""
+var color_green = ""+green_color_code+""
+var color_yellow = ""+yellow_color_code+""
+var color_blue = ""+blue_color_code+""
+var color_magenta = ""+magenta_color_code+""
+var color_cyan = ""+cyan_color_code+""
+var color_white = ""+white_color_code+""
+var color_extra_white = ""+bold_color_code+""
+var color_normal = ""+regular_color_code+""
 
 var prompt_mutex sync.Mutex // prompt lock
-var prompt string = "\033[92mDERO Wallet:\033[32m>>>\033[0m "
+var prompt string = ""+bright_green_color_code+"DERO Wallet:"+green_color_code+">>>"+regular_color_code+" "
 
 var tablock uint32
 
@@ -132,7 +156,7 @@ func main() {
 
 	// We need to initialize readline first, so it changes stderr to ansi processor on windows
 	l, err := readline.NewEx(&readline.Config{
-		//Prompt:          "\033[92mDERO:\033[32m»\033[0m",
+		//Prompt:          ""+bright_green_color_code+"DERO:"+green_color_code+"»"+regular_color_code+"",
 		Prompt:          prompt,
 		HistoryFile:     "", // wallet never saves any history file anywhere, to prevent any leakage
 		AutoComplete:    completer,
@@ -399,7 +423,7 @@ func update_prompt(l *readline.Instance) {
 		}
 
 		if wallet == nil {
-			l.SetPrompt(fmt.Sprintf("\033[1m\033[32m%s \033[0m"+color_green+"0/%d \033[32m>>>\033[0m ", address_trim, walletapi.Get_Daemon_Height()))
+			l.SetPrompt(fmt.Sprintf(""+bold_color_code+""+green_color_code+"%s "+regular_color_code+""+color_green+"0/%d "+green_color_code+">>>"+regular_color_code+" ", address_trim, walletapi.Get_Daemon_Height()))
 			l.Refresh()
 			prompt_mutex.Unlock()
 			continue
@@ -413,15 +437,15 @@ func update_prompt(l *readline.Instance) {
 		if last_wallet_height != wallet.Get_Height() || last_daemon_height != walletapi.Get_Daemon_Height() ||
 			/*daemon_online != wallet.IsDaemonOnlineCached() ||*/ (time.Now().Unix()-last_update_time) >= 1 {
 			// choose color based on urgency
-			color := "\033[32m" // default is green color
+			color := ""+green_color_code+"" // default is green color
 			if wallet.Get_Height() < wallet.Get_Daemon_Height() {
-				color = "\033[33m" // make prompt yellow
+				color = ""+yellow_color_code+"" // make prompt yellow
 			}
 
 			//dheight := walletapi.Get_Daemon_Height()
 
 			/*if wallet.IsDaemonOnlineCached() == false {
-				color = "\033[33m" // make prompt yellow
+				color = ""+yellow_color_code+"" // make prompt yellow
 				dheight = 0
 			}*/
 
@@ -439,10 +463,10 @@ func update_prompt(l *readline.Instance) {
 
 			testnet_string := ""
 			if !globals.IsMainnet() {
-				testnet_string = "\033[31m TESTNET"
+				testnet_string = ""+red_color_code+" TESTNET"
 			}
 
-			l.SetPrompt(fmt.Sprintf("\033[1m\033[32m%s \033[0m"+color+"%d/%d %s %s\033[32m>>>\033[0m ", address_trim, wallet.Get_Height(), walletapi.Get_Daemon_Height(), balance_string, testnet_string))
+			l.SetPrompt(fmt.Sprintf(""+bold_color_code+""+green_color_code+"%s "+regular_color_code+""+color+"%d/%d %s %s"+green_color_code+">>>"+regular_color_code+" ", address_trim, wallet.Get_Height(), walletapi.Get_Daemon_Height(), balance_string, testnet_string))
 			l.Refresh()
 			last_wallet_height = wallet.Get_Height()
 			last_daemon_height = walletapi.Get_Daemon_Height()
@@ -548,7 +572,7 @@ func choose_seed_language(l *readline.Instance) string {
 	languages := mnemonics.Language_List()
 	fmt.Printf("Language list for seeds, please enter a number (default English)\n")
 	for i := range languages {
-		fmt.Fprintf(l.Stderr(), "\033[1m%2d:\033[0m %s\n", i, languages[i])
+		fmt.Fprintf(l.Stderr(), ""+bold_color_code+"%2d:"+regular_color_code+" %s\n", i, languages[i])
 	}
 
 	language_number := read_line_with_prompt(l, "Please enter a choice: ")

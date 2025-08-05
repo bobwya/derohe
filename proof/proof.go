@@ -22,7 +22,7 @@ import "strings"
 import "encoding/hex"
 
 import "github.com/deroproject/derohe/cryptography/crypto"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/cryptography/bn256"
 import "github.com/deroproject/derohe/transaction"
 

@@ -21,7 +21,7 @@ import (
 	"fmt"
 	"runtime/debug"
 
-	"github.com/deroproject/derohe/rpc"
+	"github.com/bobwya/derohe/rpc"
 )
 
 func GetTransferbyTXID(ctx context.Context, p rpc.Get_Transfer_By_TXID_Params) (result rpc.Get_Transfer_By_TXID_Result, err error) {

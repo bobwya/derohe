@@ -45,49 +45,79 @@ import "github.com/docopt/docopt-go"
 import "gopkg.in/natefinch/lumberjack.v2"
 
 import "github.com/deroproject/derohe/p2p"
-import "github.com/deroproject/derohe/globals"
 import "github.com/deroproject/derohe/block"
 import "github.com/deroproject/derohe/transaction"
 import "github.com/deroproject/derohe/config"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/blockchain"
-import derodrpc "github.com/deroproject/derohe/cmd/derod/rpc"
+import derodrpc "github.com/bobwya/derohe/cmd/derod/rpc"
+import globals "github.com/deroproject/derohe/globals"
 
 import "github.com/deroproject/derohe/cryptography/crypto"
+
+// Color codes for TTY usage
+const (
+        regular_color_code = "\033[0m"
+        bold_color_code = "\033[1m"
+
+        black_color_code = "\033[30m"
+        red_color_code = "\033[31m"
+        green_color_code = "\033[32m"
+        yellow_color_code = "\033[33m"
+        blue_color_code = "\033[34m"
+        magenta_color_code = "\033[35m"
+        cyan_color_code = "\033[36m"
+        white_color_code = "\033[37m"
+
+        bright_black_color_code = "\033[90m"
+        bright_red_color_code = "\033[91m"
+        bright_green_color_code = "\033[92m"
+        bright_yellow_color_code = "\033[93m"
+        bright_blue_color_code = "\033[94m"
+        bright_magenta_color_code = "\033[95m"
+        bright_cyan_color_code = "\033[96m"
+        bright_white_color_code = "\033[97m"
+)
+
+var background_mode bool
+var time_change bool
+var status_interval uint64
+var prompt_string string
 
 var command_line string = `derod 
 DERO : A secure, private blockchain with smart-contracts
 
 Usage:
-  derod [--help] [--version] [--testnet] [--debug]  [--sync-node] [--timeisinsync] [--fastsync] [--socks-proxy=<socks_ip:port>] [--data-dir=<directory>] [--p2p-bind=<0.0.0.0:18089>] [--add-exclusive-node=<ip:port>]... [--add-priority-node=<ip:port>]... [--min-peers=<11>] [--max-peers=<100>] [--rpc-bind=<127.0.0.1:9999>] [--getwork-bind=<0.0.0.0:18089>] [--node-tag=<unique name>] [--prune-history=<50>] [--integrator-address=<address>] [--clog-level=1] [--flog-level=1] [--log-dir=<dir>]
+  derod [--help] [--version] [--testnet] [--background] [--debug] [--sync-node] [--timeisinsync] [--fastsync] [--socks-proxy=<socks_ip:port>] [--data-dir=<directory>] [--p2p-bind=<0.0.0.0:18089>] [--add-exclusive-node=<ip:port>]... [--add-priority-node=<ip:port>]... [--min-peers=<11>] [--max-peers=<100>] [--rpc-bind=<127.0.0.1:9999>] [--getwork-bind=<0.0.0.0:18089>] [--node-tag=<unique name>] [--prune-history=<50>] [--integrator-address=<address>] [--clog-level=1] [--flog-level=1] [--log-dir=<dir>] [--logging]
   derod -h | --help
   derod --version
 
 Options:
-  -h --help     Show this screen.
-  --version     Show version.
-  --testnet  	Run in testnet mode.
-  --debug       Debug mode enabled, print more log messages
-  --clog-level=1	Set console log level (0 to 127) 
-  --flog-level=1	Set file log level (0 to 127)
-  --fastsync      Fast sync mode (this option has effect only while bootstrapping)
+  -h --help  Show this screen.
+  --version  Show version.
+  --testnet  Run in testnet mode.
+  --background  Run as a background service
+  --debug  Debug mode enabled, print more log messages
+  --clog-level=1  Set console log level (0 to 127)
+  --flog-level=1  Set file log level (0 to 127)
+  --fastsync  Fast sync mode (this option has effect only while bootstrapping)
   --timeisinsync  Confirms to daemon that time is in sync, so daemon doesn't try to sync
   --socks-proxy=<socks_ip:port>  Use a proxy to connect to network.
-  --data-dir=<directory>    Store blockchain data at this location
-  --rpc-bind=<127.0.0.1:9999>    RPC listens on this ip:port
-  --p2p-bind=<0.0.0.0:18089>    p2p server listens on this ip:port, specify port 0 to disable listening server
-  --getwork-bind=<0.0.0.0:10100>    getwork server listens on this ip:port, specify port 0 to disable listening server
-  --add-exclusive-node=<ip:port>	Connect to specific peer only 
-  --add-priority-node=<ip:port>	Maintain persistant connection to specified peer
-  --sync-node       Sync node automatically with the seeds nodes. This option is for rare use.
-  --node-tag=<unique name>	Unique name of node, visible to everyone
-  --integrator-address	if this node mines a block,Integrator rewards will be given to address.default is dev's address.
-  --min-peers=<31>	  Node will try to maintain atleast this many connections to peers
-  --max-peers=<101>	  Node will maintain maximim this many connections to peers and will stop accepting connections
-  --prune-history=<50>	prunes blockchain history until the specific topo_height
-  --log-dir=<directory> Logs will be placed in this directory
-
-  `
+  --data-dir=<directory>  Store blockchain data at this location
+  --rpc-bind=<127.0.0.1:9999>  RPC listens on this ip:port
+  --p2p-bind=<0.0.0.0:18089>  p2p server listens on this ip:port, specify port 0 to disable listening server
+  --getwork-bind=<0.0.0.0:10100>  getwork server listens on this ip:port, specify port 0 to disable listening server
+  --add-exclusive-node=<ip:port>  Connect to specific peer only
+  --add-priority-node=<ip:port>  Maintain persistant connection to specified peer
+  --sync-node  Sync node automatically with the seeds nodes. This option is for rare use.
+  --node-tag=<unique name>  Unique name of node, visible to everyone
+  --integrator-address=<address>  if this node mines a block,Integrator rewards will be given to address.default is dev's address.
+  --min-peers=<31>  Node will try to maintain atleast this many connections to peers
+  --max-peers=<101>  Node will maintain maximim this many connections to peers and will stop accepting connections
+  --prune-history=<50>  prunes blockchain history until the specific topo_height
+  --logging  Enable file logging
+  --log-dir=<directory>  Logs will be placed in this directory
+`
 
 var Exit_In_Progress = make(chan bool)
 
@@ -121,9 +151,18 @@ func main() {
 
 	// We need to initialize readline first, so it changes stderr to ansi processor on windows
 
+	if globals.Arguments["--background"].(bool) {
+		background_mode = true
+		prompt_string = ""
+		status_interval = 60
+	} else {
+		background_mode = false
+		prompt_string = bright_green_color_code+"DERO:"+green_color_code+">>> "+regular_color_code
+		status_interval = 1
+	}
+
 	l, err := readline.NewEx(&readline.Config{
-		//Prompt:          "\033[92mDERO:\033[32m»\033[0m",
-		Prompt:          "\033[92mDERO:\033[32m>>>\033[0m ",
+		Prompt:          prompt_string,
 		HistoryFile:     filepath.Join(os.TempDir(), "derod_readline.tmp"),
 		AutoComplete:    completer,
 		InterruptPrompt: "^C",
@@ -139,21 +178,33 @@ func main() {
 	defer l.Close()
 
 	// parse arguments and setup logging , print basic information
+	if globals.Arguments["--logging"] != nil && globals.Arguments["--logging"].(bool) == true {
+		globals.Logging = true
+	} else {
+		globals.Logging = false
+	}
 	exename, _ := os.Executable()
 	logdir := ""
 	filename := exename + ".log"
 	if _, ok := globals.Arguments["--log-dir"]; ok && globals.Arguments["--log-dir"] != nil {
+		if !globals.Logging {
+			logger.Error(fmt.Errorf("logging must be enabled when --log-dir is specified"), "invalid argument")
+			return
+		}
 		logdir = globals.Arguments["--log-dir"].(string)
 		filename = filepath.Base(exename) + ".log"
 		filename = filepath.Join(logdir,filename)
 	}
 
-	globals.InitializeLog(l.Stdout(), &lumberjack.Logger{
-		Filename:   filename,
-		MaxSize:    100, // megabytes
-		MaxBackups: 2,
-	})
-
+	if globals.Logging {
+		globals.InitializeLog(l.Stdout(), &lumberjack.Logger{
+			Filename:   filename,
+			MaxSize:    100, // megabytes
+			MaxBackups: 2,
+		})
+	} else {
+		globals.InitializeLog(l.Stdout(), nil)
+	}
 	logger = globals.Logger.WithName("derod")
 
 	logger.Info("DERO HE daemon :  It is an alpha version, use it for testing/evaluations purpose only.")
@@ -194,7 +245,6 @@ func main() {
 			return
 		} else {
 			logger.Info("blockchain pruning successful")
-
 		}
 	}
 
@@ -280,7 +330,9 @@ func main() {
 		last_topo_height := int64(0)
 		last_mempool_tx_count := 0
 		last_regpool_tx_count := 0
-		last_second := int64(0)
+		last_time := int64(0)
+		time_change := false
+
 		for {
 			select {
 			case <-Exit_In_Progress:
@@ -299,37 +351,54 @@ func main() {
 				regpool_tx_count := len(chain.Regpool.Regpool_List_TX())
 
 				// only update prompt if needed
-				if last_second != time.Now().Unix() || last_our_height != our_height || last_best_height != best_height || last_peer_count != peer_count || last_topo_height != topo_height || last_mempool_tx_count != mempool_tx_count || last_regpool_tx_count != regpool_tx_count {
+				if !background_mode {
+					time_change = last_time != time.Now().Unix()
+				}
+				if time_change || last_our_height != our_height || last_best_height != best_height || last_peer_count != peer_count || last_topo_height != topo_height || last_mempool_tx_count != mempool_tx_count || last_regpool_tx_count != regpool_tx_count {
 					// choose color based on urgency
-					color := "\033[32m" // default is green color
+					color := green_color_code
 					if our_height < best_height {
-						color = "\033[33m" // make prompt yellow
+						color = yellow_color_code
 					} else if our_height > best_height {
-						color = "\033[31m" // make prompt red
+						color = red_color_code
 					}
 
-					pcolor := "\033[32m" // default is green color
+					pcolor := green_color_code
 					if peer_count < 1 {
-						pcolor = "\033[31m" // make prompt red
+						pcolor = red_color_code
 					} else if peer_count <= 8 {
-						pcolor = "\033[33m" // make prompt yellow
+						pcolor = yellow_color_code
 					}
 
 					hash_rate_string := hashratetostring(chain.Get_Network_HashRate())
 
 					testnet_string := ""
 					if globals.IsMainnet() {
-						testnet_string = "\033[31m MAINNET"
+						testnet_string = bold_color_code+green_color_code+" MAINNET"+regular_color_code
 					} else {
-						testnet_string = "\033[31m TESTNET"
+						testnet_string = bold_color_code+red_color_code+" TESTNET"+regular_color_code
 					}
 
-					testnet_string += " " + strconv.Itoa(chain.MiniBlocks.Count()) + " " + globals.GetOffset().Round(time.Millisecond).String() + "|" + globals.GetOffsetNTP().Round(time.Millisecond).String() + "|" + globals.GetOffsetP2P().Round(time.Millisecond).String()
+					time_offset_string := fmt.Sprintf(blue_color_code+"%s"+black_color_code+";"+blue_color_code+"%s"+black_color_code+";"+blue_color_code+"%s",
+						    globals.GetOffset().Round(time.Millisecond).String(),
+						    globals.GetOffsetNTP().Round(time.Millisecond).String(),
+						    globals.GetOffsetP2P().Round(time.Millisecond).String())
+					testnet_string += "  "+fmt.Sprintf("%04d", chain.MiniBlocks.Count())+"  "+time_offset_string
 
 					miner_count := derodrpc.CountMiners()
-					l.SetPrompt(fmt.Sprintf("\033[1m\033[32mDERO HE: \033[0m"+color+"%d/%d [%d/%d] "+pcolor+"P %d TXp %d:%d \033[32mNW %s >MN %d %s>>\033[0m ", our_height, topo_height, best_height, best_topo_height, peer_count, mempool_tx_count, regpool_tx_count, hash_rate_string, miner_count, testnet_string))
-					l.Refresh()
-					last_second = time.Now().Unix()
+					miner_ips := derodrpc.getAllMinerRemoteIPs()
+					base_string := bold_color_code+green_color_code+"DERO HE  "+regular_color_code+blue_color_code+"Network Height: "+regular_color_code+color+"%010d"
+					base_string = base_string+black_color_code+"/"+color+"%010d "+black_color_code+"["+color+"%012d"+black_color_code+"/"+color+"%012d"
+					base_string = base_string+black_color_code+"]  "+blue_color_code+"Peer(s): "+pcolor+"%04d"+blue_color_code+" TX "+pcolor+"%d"+black_color_code+":"+pcolor+"%d"+blue_color_code+"  Network: "+pcolor+"%s\\n"
+					base_string = base_string+bold_color_code+green_color_code+"DERO HE  "+regular_color_code+blue_color_code+"Miner(s): "+pcolor+"%s (%04d) %s"
+					format_string := base_string+regular_color_code
+					logger.Info(fmt.Sprintf(format_string, our_height, topo_height, best_height, best_topo_height, peer_count, mempool_tx_count, regpool_tx_count, hash_rate_string, miner_ips, miner_count, testnet_string))
+					if !background_mode {
+						format_string := base_string+" >> "+regular_color_code
+						l.SetPrompt(fmt.Sprintf(format_string, our_height, topo_height, best_height, best_topo_height, peer_count, mempool_tx_count, regpool_tx_count, hash_rate_string, miner_count, testnet_string))
+						l.Refresh()
+					}
+					last_time = time.Now().Unix()
 					last_our_height = our_height
 					last_best_height = best_height
 					last_peer_count = peer_count
@@ -338,7 +407,7 @@ func main() {
 					last_topo_height = best_topo_height
 				}
 			}()
-			time.Sleep(1 * time.Second)
+			time.Sleep(time.Duration(status_interval) * time.Second)
 		}
 	}()
 
@@ -363,9 +432,13 @@ func main() {
 		}
 	}()
 
+
 	for {
 		if err = readline_loop(l, chain, logger); err == nil {
 			break
+		}
+		if background_mode {
+			time.Sleep(1 * time.Second)
 		}
 	}
 
@@ -1108,15 +1181,15 @@ func hashratetostring(hash_rate uint64) string {
 
 	switch {
 	case hash_rate > 1000000000000:
-		hash_rate_string = fmt.Sprintf("%.3f TH/s", float64(hash_rate)/1000000000000.0)
+		hash_rate_string = fmt.Sprintf("%8.3f "+black_color_code+"TH/s", float64(hash_rate)/1000000000000.0)
 	case hash_rate > 1000000000:
-		hash_rate_string = fmt.Sprintf("%.3f GH/s", float64(hash_rate)/1000000000.0)
+		hash_rate_string = fmt.Sprintf("%8.3f "+black_color_code+"GH/s", float64(hash_rate)/1000000000.0)
 	case hash_rate > 1000000:
-		hash_rate_string = fmt.Sprintf("%.3f MH/s", float64(hash_rate)/1000000.0)
+		hash_rate_string = fmt.Sprintf("%8.3f "+black_color_code+"MH/s", float64(hash_rate)/1000000.0)
 	case hash_rate > 1000:
-		hash_rate_string = fmt.Sprintf("%.3f KH/s", float64(hash_rate)/1000.0)
+		hash_rate_string = fmt.Sprintf("%8.3f "+black_color_code+"KH/s", float64(hash_rate)/1000.0)
 	case hash_rate > 0:
-		hash_rate_string = fmt.Sprintf("%d H/s", hash_rate)
+		hash_rate_string = fmt.Sprintf("%4d "+black_color_code+"H/s", hash_rate)
 	}
 	return hash_rate_string
 }
@@ -1167,29 +1240,29 @@ func prettyprint_json(b []byte) []byte {
 
 func usage(w io.Writer) {
 	io.WriteString(w, "commands:\n")
-	io.WriteString(w, "\t\033[1mhelp\033[0m\t\tthis help\n")
-	io.WriteString(w, "\t\033[1mdiff\033[0m\t\tShow difficulty\n")
-	io.WriteString(w, "\t\033[1mprint_bc\033[0m\tPrint blockchain info in a given blocks range, print_bc <begin_height> <end_height>\n")
-	io.WriteString(w, "\t\033[1mprint_block\033[0m\tPrint block, print_block <block_hash> or <block_height>\n")
-	io.WriteString(w, "\t\033[1mprint_tx\033[0m\tPrint transaction, print_tx <transaction_hash>\n")
-	io.WriteString(w, "\t\033[1mstatus\033[0m\t\tShow general information\n")
-	io.WriteString(w, "\t\033[1mpeer_list\033[0m\tPrint peer list\n")
-	io.WriteString(w, "\t\033[1msyncinfo\033[0m\tPrint information about connected peers and their state\n")
-	io.WriteString(w, "\t\033[1mbye\033[0m\t\tQuit the daemon\n")
-	io.WriteString(w, "\t\033[1mban\033[0m\t\tBan specific ip from making any connections\n")
-	io.WriteString(w, "\t\033[1munban\033[0m\t\tRevoke restrictions on previously banned ips\n")
-	io.WriteString(w, "\t\033[1mbans\033[0m\t\tPrint current ban list\n")
-	io.WriteString(w, "\t\033[1mmempool_print\033[0m\t\tprint mempool contents\n")
-	io.WriteString(w, "\t\033[1mmempool_delete_tx\033[0m\t\tDelete specific tx from mempool\n")
-	io.WriteString(w, "\t\033[1mmempool_flush\033[0m\t\tFlush regpool\n")
-	io.WriteString(w, "\t\033[1mregpool_print\033[0m\t\tprint regpool contents\n")
-	io.WriteString(w, "\t\033[1mregpool_delete_tx\033[0m\t\tDelete specific tx from regpool\n")
-	io.WriteString(w, "\t\033[1mregpool_flush\033[0m\t\tFlush mempool\n")
-	io.WriteString(w, "\t\033[1msetintegratoraddress\033[0m\t\tChange current integrated address\n")
+	io.WriteString(w, "\t"+bold_color_code+"help"+regular_color_code+"\t\tthis help\n")
+	io.WriteString(w, "\t"+bold_color_code+"diff"+regular_color_code+"\t\tShow difficulty\n")
+	io.WriteString(w, "\t"+bold_color_code+"print_bc"+regular_color_code+"\tPrint blockchain info in a given blocks range, print_bc <begin_height> <end_height>\n")
+	io.WriteString(w, "\t"+bold_color_code+"print_block"+regular_color_code+"\tPrint block, print_block <block_hash> or <block_height>\n")
+	io.WriteString(w, "\t"+bold_color_code+"print_tx"+regular_color_code+"\tPrint transaction, print_tx <transaction_hash>\n")
+	io.WriteString(w, "\t"+bold_color_code+"status"+regular_color_code+"\t\tShow general information\n")
+	io.WriteString(w, "\t"+bold_color_code+"peer_list"+regular_color_code+"\tPrint peer list\n")
+	io.WriteString(w, "\t"+bold_color_code+"syncinfo"+regular_color_code+"\tPrint information about connected peers and their state\n")
+	io.WriteString(w, "\t"+bold_color_code+"bye"+regular_color_code+"\t\tQuit the daemon\n")
+	io.WriteString(w, "\t"+bold_color_code+"ban"+regular_color_code+"\t\tBan specific ip from making any connections\n")
+	io.WriteString(w, "\t"+bold_color_code+"unban"+regular_color_code+"\t\tRevoke restrictions on previously banned ips\n")
+	io.WriteString(w, "\t"+bold_color_code+"bans"+regular_color_code+"\t\tPrint current ban list\n")
+	io.WriteString(w, "\t"+bold_color_code+"mempool_print"+regular_color_code+"\t\tprint mempool contents\n")
+	io.WriteString(w, "\t"+bold_color_code+"mempool_delete_tx"+regular_color_code+"\t\tDelete specific tx from mempool\n")
+	io.WriteString(w, "\t"+bold_color_code+"mempool_flush"+regular_color_code+"\t\tFlush regpool\n")
+	io.WriteString(w, "\t"+bold_color_code+"regpool_print"+regular_color_code+"\t\tprint regpool contents\n")
+	io.WriteString(w, "\t"+bold_color_code+"regpool_delete_tx"+regular_color_code+"\t\tDelete specific tx from regpool\n")
+	io.WriteString(w, "\t"+bold_color_code+"regpool_flush"+regular_color_code+"\t\tFlush mempool\n")
+	io.WriteString(w, "\t"+bold_color_code+"setintegratoraddress"+regular_color_code+"\t\tChange current integrated address\n")
 
-	io.WriteString(w, "\t\033[1mversion\033[0m\t\tShow version\n")
-	io.WriteString(w, "\t\033[1mexit\033[0m\t\tQuit the daemon\n")
-	io.WriteString(w, "\t\033[1mquit\033[0m\t\tQuit the daemon\n")
+	io.WriteString(w, "\t"+bold_color_code+"version"+regular_color_code+"\t\tShow version\n")
+	io.WriteString(w, "\t"+bold_color_code+"exit"+regular_color_code+"\t\tQuit the daemon\n")
+	io.WriteString(w, "\t"+bold_color_code+"quit"+regular_color_code+"\t\tQuit the daemon\n")
 
 }
 

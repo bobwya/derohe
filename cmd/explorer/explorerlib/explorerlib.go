@@ -45,7 +45,7 @@ import (
 	"github.com/deroproject/derohe/globals"
 	"github.com/deroproject/derohe/glue/rwc"
 	"github.com/deroproject/derohe/proof"
-	"github.com/deroproject/derohe/rpc"
+	"github.com/bobwya/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
 	"github.com/go-logr/logr"
 	"github.com/gorilla/websocket"

@@ -23,7 +23,7 @@ import "runtime/debug"
 //import	"log"
 //import 	"net/http"
 
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 
 func GetAddress(ctx context.Context) (result rpc.GetAddress_Result, err error) {
 	defer func() { // safety so if anything wrong happens, we return error

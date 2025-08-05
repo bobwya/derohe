@@ -299,11 +299,11 @@ func extract_parse_version(str string) {
 	if u.Message != "" && err == nil { // check semver
 		if current_version.LT(uversion) {
 			if current_version.Major != uversion.Major { // if major version is different give extract warning
-				logger.Info("\033[31m CRITICAL MAJOR update, please upgrade ASAP.\033[0m")
+				logger.Info(""+red_color_code+" CRITICAL MAJOR update, please upgrade ASAP."+regular_color_code+"")
 			}
 
 			logger.Info(fmt.Sprintf("%s", u.Message)) // give the version upgrade message
-			logger.Info(fmt.Sprintf("\033[33mCurrent Version %s \033[32m-> Upgrade Version %s\033[0m ", current_version.String(), uversion.String()))
+			logger.Info(fmt.Sprintf(""+yellow_color_code+"Current Version %s "+green_color_code+"-> Upgrade Version %s"+regular_color_code+" ", current_version.String(), uversion.String()))
 		}
 	}
 

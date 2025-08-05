@@ -16,7 +16,9 @@
 
 package p2p
 
-//import "fmt"
+import "os"
+// import "os/signal"
+// import "syscall"
 import "time"
 import "math/rand"
 
@@ -42,7 +44,7 @@ var timeservers = []string{ // facebook/google do leap smearing, so they should 
 
 // continusosly checks time for deviation if possible
 // ToDo initial warning should NOT get hidden in messages
-// TODO we need to spport interleaved NTP protocol, possibly over TCP
+// TODO we need to support interleaved NTP protocol, possibly over TCP
 func time_check_routine() {
 
 	const offset_count = 128
@@ -82,16 +84,28 @@ func time_check_routine() {
 				globals.ClockOffsetNTP = 0
 			}
 			globals.TimeIsInSyncNTP = true
-			// if offset is more than 1 sec
-			if response.ClockOffset.Seconds() > -1.0 && response.ClockOffset.Seconds() < 1.0 { // chrony can maintain upto 5 ms, ntps can maintain upto 10
+			// if offset is more than 500 milliseconds
+			if response.ClockOffset.Seconds() > -0.5 && response.ClockOffset.Seconds() < 0.5 { // chrony can maintain upto 5 ms, ntps can maintain upto 10
 				timeinsync = true
 			} else {
 				timeinsync = false
-				logger.V(1).Error(nil, "Your system time deviation is more than 1 secs (%s)."+
+				globals.TimeIsOutOfSync = true
+				logger.V(1).Error(nil, "Your system time deviation is more than 500 milliseconds (%s)."+
 					"\nYou may experience chain sync issues and/or other side-effects."+
 					"\nIf you are mining, your blocks may get rejected."+
-					"\nPlease sync your system using chrony/NTP software (default availble in all OS)."+
+					"\nPlease sync your system using chrony/NTP software (default available in all OS)."+
 					"\n eg. ntpdate pool.ntp.org  (for linux/unix)", "offset", response.ClockOffset)
+				// Manually trigger an interrupt signal
+				p, err := os.FindProcess(os.Getpid())
+				if err != nil {
+					logger.V(1).Error(nil, "Error finding process: %s", err)
+					return
+				}
+				err = p.Signal(os.Interrupt)
+				if err != nil {
+					logger.V(1).Error(nil, "Error sending interrupt signal: %s", err)
+					return
+				}
 			}
 		}
 

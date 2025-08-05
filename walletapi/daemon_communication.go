@@ -42,7 +42,7 @@ import (
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/errormsg"
 	"github.com/deroproject/derohe/globals"
-	"github.com/deroproject/derohe/rpc"
+	"github.com/bobwya/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
 )
 

@@ -36,7 +36,33 @@ import "github.com/go-logr/zapr"
 import "github.com/robfig/cron/v3"
 
 import "github.com/deroproject/derohe/config"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
+
+
+// Color codes for TTY usage
+const (
+	regular_color_code = "\033[0m"
+	bold_color_code = "\033[1m"
+
+	black_color_code = "\033[30m"
+	red_color_code = "\033[31m"
+	green_color_code = "\033[32m"
+	yellow_color_code = "\033[33m"
+	blue_color_code = "\033[34m"
+	magenta_color_code = "\033[35m"
+	cyan_color_code = "\033[36m"
+	white_color_code = "\033[37m"
+
+	bright_black_color_code = "\033[90m"
+	bright_red_color_code = "\033[91m"
+	bright_green_color_code = "\033[92m"
+	bright_yellow_color_code = "\033[93m"
+	bright_blue_color_code = "\033[94m"
+	bright_magenta_color_code = "\033[95m"
+	bright_cyan_color_code = "\033[96m"
+	bright_white_color_code = "\033[97m"
+)
+
 
 // all the the global variables used by the program are stored here
 // since the entire logic is designed around a state machine driven by external events
@@ -52,11 +78,14 @@ var Config config.CHAIN_CONFIG = config.Mainnet // default is mainnnet
 // global logger all components will use it with context
 var Logger logr.Logger = logr.Discard() // default discard all logs
 
+var Logging bool
+
 var ClockOffset time.Duration    // actual clock offset that is used by the daemon
 var ClockOffsetNTP time.Duration // clockoffset in reference to ntp servers
 var ClockOffsetP2P time.Duration // clockoffset in reference to p2p averging
 var TimeIsInSync bool            // whether time is in sync, if yes we do not use any clock offset but still we keep calculating them
 var TimeIsInSyncNTP bool
+var TimeIsOutOfSync bool
 
 // get current time with clock offset applied
 func Time() time.Time {
@@ -167,24 +196,32 @@ func InitializeLog(console, logfile io.Writer) {
 	zc.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	zc.EncodeTime = zapcore.TimeEncoderOfLayout("02/01 15:04:05")
 
-	file_encoder := zapcore.NewJSONEncoder(zf)
 	console_encoder := zapcore.NewConsoleEncoder(zc)
 
 	core_console := zapcore.NewCore(console_encoder, zapcore.AddSync(console), Log_Level_Console)
 	removecore := &removeCallerCore{core_console}
-	core := zapcore.NewTee(
-		removecore,
-		zapcore.NewCore(file_encoder, zapcore.AddSync(logfile), Log_Level_File),
-	)
+	if logfile != nil {
+		file_encoder := zapcore.NewJSONEncoder(zf)
+		core := zapcore.NewTee(
+			removecore,
+			zapcore.NewCore(file_encoder, zapcore.AddSync(logfile), Log_Level_File),
+		)
 
-	zcore := zap.New(core, zap.AddCaller()) // add caller info to every record which is then trimmed from console
+		zcore := zap.New(core, zap.AddCaller()) // add caller info to every record which is then trimmed from console
 
-	Logger = zapr.NewLogger(zcore) // sets up global logger
-	//Logger = zapr.NewLoggerWithOptions(zcore,zapr.LogInfoLevel("V")) // if you need verbosity levels
+		Logger = zapr.NewLogger(zcore) // sets up global logger
+		//Logger = zapr.NewLoggerWithOptions(zcore,zapr.LogInfoLevel("V")) // if you need verbosity levels
 
-	// remember -1 is debug, 0 is info
+		// remember -1 is debug, 0 is info
+	} else {
+		core := zapcore.NewTee(removecore)
 
+		zcore := zap.New(core, zap.AddCaller()) // add caller info to every record which is then trimmed from console
+
+		Logger = zapr.NewLogger(zcore)
+	}
 }
+
 func Initialize() {
 	var err error
 

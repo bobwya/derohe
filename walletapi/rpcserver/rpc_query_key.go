@@ -24,7 +24,7 @@ import "runtime/debug"
 //import	"log"
 //import 	"net/http"
 
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 
 func QueryKey(ctx context.Context, p rpc.Query_Key_Params) (result rpc.Query_Key_Result, err error) {
 	defer func() { // safety so if anything wrong happens, we return error

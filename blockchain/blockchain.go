@@ -39,7 +39,7 @@ import "sync/atomic"
 
 import "github.com/hashicorp/golang-lru"
 
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/config"
 import "github.com/deroproject/derohe/cryptography/crypto"
 import "github.com/deroproject/derohe/errormsg"

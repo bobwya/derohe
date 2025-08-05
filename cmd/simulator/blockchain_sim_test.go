@@ -34,13 +34,13 @@ import "github.com/docopt/docopt-go"
 
 import "github.com/deroproject/derohe/globals"
 import "github.com/deroproject/derohe/config"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/transaction"
 import "github.com/deroproject/derohe/walletapi"
 import "github.com/deroproject/derohe/blockchain"
 import "github.com/deroproject/derohe/cryptography/crypto"
 import "github.com/deroproject/derohe/cryptography/bn256"
-import derodrpc "github.com/deroproject/derohe/cmd/derod/rpc"
+import derodrpc "github.com/bobwya/derohe/cmd/derod/rpc"
 
 func init() {
 	_ = os.Stdout

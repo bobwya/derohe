@@ -31,7 +31,7 @@ import "github.com/deroproject/derohe/cryptography/bn256"
 
 import "golang.org/x/xerrors"
 import "github.com/deroproject/graviton"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/config"
 
 //import "github.com/deroproject/derohe/transaction"

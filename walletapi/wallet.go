@@ -30,7 +30,7 @@ import (
 
 	"github.com/deroproject/derohe/cryptography/bn256"
 	"github.com/deroproject/derohe/cryptography/crypto"
-	"github.com/deroproject/derohe/rpc"
+	"github.com/bobwya/derohe/rpc"
 	"github.com/deroproject/derohe/transaction"
 	"github.com/deroproject/derohe/walletapi/mnemonics"
 	"github.com/go-logr/logr"

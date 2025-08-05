@@ -31,7 +31,7 @@ import (
 	"github.com/deroproject/derohe/config"
 	"github.com/deroproject/derohe/cryptography/crypto"
 	"github.com/deroproject/derohe/globals"
-	"github.com/deroproject/derohe/rpc"
+	"github.com/bobwya/derohe/rpc"
 	"github.com/deroproject/derohe/walletapi"
 )
 
@@ -971,27 +971,27 @@ var completer = readline.NewPrefixCompleter(
 // help command screen
 func usage(w io.Writer) {
 	io.WriteString(w, "commands:\n")
-	io.WriteString(w, "\t\033[1mhelp\033[0m\t\tthis help\n")
-	io.WriteString(w, "\t\033[1maddress\033[0m\t\tDisplay user address\n")
-	io.WriteString(w, "\t\033[1mbalance\033[0m\t\tDisplay user balance\n")
-	io.WriteString(w, "\t\033[1mtoken_add\033[0m\t\tAdd token\n")
-	io.WriteString(w, "\t\033[1mintegrated_address\033[0m\tDisplay random integrated address (with encrypted payment ID)\n")
-	io.WriteString(w, "\t\033[1mmenu\033[0m\t\tEnable menu mode\n")
-	io.WriteString(w, "\t\033[1mrescan_bc\033[0m\tRescan blockchain to re-obtain transaction history \n")
-	io.WriteString(w, "\t\033[1mpassword\033[0m\tChange wallet password\n")
-	io.WriteString(w, "\t\033[1mpayment_id\033[0m\tPrint random Payment ID (for encrypted version see integrated_address)\n")
-	io.WriteString(w, "\t\033[1mseed\033[0m\t\tDisplay seed\n")
-	io.WriteString(w, "\t\033[1mshow_transfers\033[0m\tShow all transactions to/from current wallet\n")
-	io.WriteString(w, "\t\033[1mset\033[0m\t\tSet/get various settings\n")
-	io.WriteString(w, "\t\033[1mstatus\033[0m\t\tShow general information and balance\n")
-	io.WriteString(w, "\t\033[1mspendkey\033[0m\tView secret key\n")
-	io.WriteString(w, "\t\033[1mtransfer\033[0m\tTransfer/Send DERO to another address\n")
+	io.WriteString(w, "\t"+bold_color_code+"help"+regular_color_code+"\t\tthis help\n")
+	io.WriteString(w, "\t"+bold_color_code+"address"+regular_color_code+"\t\tDisplay user address\n")
+	io.WriteString(w, "\t"+bold_color_code+"balance"+regular_color_code+"\t\tDisplay user balance\n")
+	io.WriteString(w, "\t"+bold_color_code+"token_add"+regular_color_code+"\t\tAdd token\n")
+	io.WriteString(w, "\t"+bold_color_code+"integrated_address"+regular_color_code+"\tDisplay random integrated address (with encrypted payment ID)\n")
+	io.WriteString(w, "\t"+bold_color_code+"menu"+regular_color_code+"\t\tEnable menu mode\n")
+	io.WriteString(w, "\t"+bold_color_code+"rescan_bc"+regular_color_code+"\tRescan blockchain to re-obtain transaction history \n")
+	io.WriteString(w, "\t"+bold_color_code+"password"+regular_color_code+"\tChange wallet password\n")
+	io.WriteString(w, "\t"+bold_color_code+"payment_id"+regular_color_code+"\tPrint random Payment ID (for encrypted version see integrated_address)\n")
+	io.WriteString(w, "\t"+bold_color_code+"seed"+regular_color_code+"\t\tDisplay seed\n")
+	io.WriteString(w, "\t"+bold_color_code+"show_transfers"+regular_color_code+"\tShow all transactions to/from current wallet\n")
+	io.WriteString(w, "\t"+bold_color_code+"set"+regular_color_code+"\t\tSet/get various settings\n")
+	io.WriteString(w, "\t"+bold_color_code+"status"+regular_color_code+"\t\tShow general information and balance\n")
+	io.WriteString(w, "\t"+bold_color_code+"spendkey"+regular_color_code+"\tView secret key\n")
+	io.WriteString(w, "\t"+bold_color_code+"transfer"+regular_color_code+"\tTransfer/Send DERO to another address\n")
 	io.WriteString(w, "\t\t\tEg. transfer <address> <amount>\n")
-	io.WriteString(w, "\t\033[1mtransfer_all\033[0m\tTransfer everything to another address\n")
-	io.WriteString(w, "\t\033[1mversion\033[0m\t\tShow version\n")
-	io.WriteString(w, "\t\033[1mbye\033[0m\t\tQuit wallet\n")
-	io.WriteString(w, "\t\033[1mexit\033[0m\t\tQuit wallet\n")
-	io.WriteString(w, "\t\033[1mquit\033[0m\t\tQuit wallet\n")
+	io.WriteString(w, "\t"+bold_color_code+"transfer_all"+regular_color_code+"\tTransfer everything to another address\n")
+	io.WriteString(w, "\t"+bold_color_code+"version"+regular_color_code+"\t\tShow version\n")
+	io.WriteString(w, "\t"+bold_color_code+"bye"+regular_color_code+"\t\tQuit wallet\n")
+	io.WriteString(w, "\t"+bold_color_code+"exit"+regular_color_code+"\t\tQuit wallet\n")
+	io.WriteString(w, "\t"+bold_color_code+"quit"+regular_color_code+"\t\tQuit wallet\n")
 
 }
 

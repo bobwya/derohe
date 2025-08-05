@@ -21,7 +21,7 @@ import "sync"
 import "context"
 import "runtime/debug"
 import "encoding/base64"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/transaction"
 import "github.com/deroproject/derohe/cryptography/crypto"
 

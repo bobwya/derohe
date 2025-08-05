@@ -23,7 +23,7 @@ import "runtime/debug"
 //import	"log"
 //import 	"net/http"
 
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 
 func MakeIntegratedAddress(ctx context.Context, p rpc.Make_Integrated_Address_Params) (result rpc.Make_Integrated_Address_Result, err error) {
 

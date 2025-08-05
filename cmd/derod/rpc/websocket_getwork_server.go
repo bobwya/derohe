@@ -33,7 +33,7 @@ import "encoding/pem"
 
 import "github.com/deroproject/derohe/globals"
 import "github.com/deroproject/derohe/config"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/graviton"
 import "github.com/go-logr/logr"
 
@@ -59,6 +59,7 @@ type user_session struct {
 	miniblocks    uint64
 	rejected      uint64
 	lasterr       string
+	remote_ip     string
 	address       rpc.Address
 	valid_address bool
 	address_sum   [32]byte
@@ -131,6 +132,14 @@ func CountMiners() int {
 	defer client_list_mutex.Unlock()
 	miners_count = len(client_list)
 	return miners_count
+}
+
+func getAllMinerRemoteIPs() string {
+    remote_ips := make([]string, 0, len(client_list))
+    for _, client := range client_list {
+        remote_ips = append(remote_ips, client.remote_ip)
+    }
+    return strings.Join(remote_ips, ",")
 }
 
 var CountMinisAccepted int64 // total accepted which passed Powtest, chain may still ignore them
@@ -293,7 +302,7 @@ func onWebsocket(w http.ResponseWriter, r *http.Request) {
 	}
 	wsConn := conn.(*websocket.Conn)
 
-	session := user_session{address: *addr, address_sum: graviton.Sum(addr_raw)}
+	session := user_session{address: *addr, address_sum: graviton.Sum(addr_raw), remote_ip: r.RemoteAddr}
 	wsConn.SetSession(&session)
 
 	client_list_mutex.Lock()

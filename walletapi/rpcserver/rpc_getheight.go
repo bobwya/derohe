@@ -19,7 +19,7 @@ package rpcserver
 import "fmt"
 import "context"
 import "runtime/debug"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 
 func GetHeight(ctx context.Context) (result rpc.GetHeight_Result, err error) {
 	defer func() { // safety so if anything wrong happens, we return error

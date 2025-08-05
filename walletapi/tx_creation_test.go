@@ -32,11 +32,11 @@ import "path/filepath"
 
 import "github.com/docopt/docopt-go"
 
-import derodrpc "github.com/deroproject/derohe/cmd/derod/rpc"
+import derodrpc "github.com/bobwya/derohe/cmd/derod/rpc"
 
 import "github.com/deroproject/derohe/globals"
 import "github.com/deroproject/derohe/config"
-import "github.com/deroproject/derohe/rpc"
+import "github.com/bobwya/derohe/rpc"
 import "github.com/deroproject/derohe/blockchain"
 import "github.com/deroproject/derohe/transaction"
 import "github.com/deroproject/derohe/cryptography/crypto"
